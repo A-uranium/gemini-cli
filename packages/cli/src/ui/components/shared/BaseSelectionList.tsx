@@ -64,7 +64,7 @@ export function BaseSelectionList<
   maxItemsToShow = 10,
   wrapAround = true,
   focusKey,
-  priority,
+  priority = true,
   renderItem,
 }: BaseSelectionListProps<T, TItem>): React.JSX.Element {
   const { activeIndex } = useSelectionList({

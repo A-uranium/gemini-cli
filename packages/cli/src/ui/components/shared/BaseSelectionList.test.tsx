@@ -134,6 +134,8 @@ describe('BaseSelectionList', () => {
         isFocused,
         showNumbers,
         wrapAround: true,
+        priority: true,
+        focusKey: undefined,
       });
       unmount();
     });

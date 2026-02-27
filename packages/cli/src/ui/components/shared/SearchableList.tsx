@@ -155,7 +155,7 @@ export function SearchableList<T extends GenericListItem>({
       }
       return false;
     },
-    { isActive: true },
+    { isActive: true, priority: true },
   );
 
   const visibleItems = filteredItems.slice(

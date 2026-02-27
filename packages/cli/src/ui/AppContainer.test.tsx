@@ -3773,4 +3773,87 @@ describe('AppContainer State Management', () => {
       unmount!();
     });
   });
+
+  describe('Expansion Persistence', () => {
+    it('should preserve expansion when a key is handled by a high-priority component', async () => {
+      let unmount: () => void;
+      let stdin: ReturnType<typeof renderAppContainer>['stdin'];
+
+      // We need a child that handles a key
+      const TestChild = () => {
+        useKeypress(
+          (key) => {
+            if (key.name === 'down') return true;
+            return false;
+          },
+          { isActive: true, priority: true },
+        );
+        return null;
+      };
+
+      await act(async () => {
+        const result = render(
+          <SettingsContext.Provider value={mockSettings}>
+            <KeypressProvider config={mockConfig}>
+              <OverflowProvider>
+                <AppContainer
+                  config={mockConfig}
+                  version="1.0.0"
+                  initializationResult={mockInitResult}
+                />
+                <TestChild />
+              </OverflowProvider>
+            </KeypressProvider>
+          </SettingsContext.Provider>,
+        );
+        unmount = result.unmount;
+        stdin = result.stdin;
+      });
+
+      await waitFor(() => expect(capturedUIActions).toBeTruthy());
+
+      // Expand first
+      act(() => capturedUIActions.setConstrainHeight(false));
+      expect(capturedUIState.constrainHeight).toBe(false);
+
+      // Press Arrow Down - should be handled by TestChild
+      act(() => {
+        stdin.write('\u001B[B');
+      });
+
+      // Should STILL be expanded
+      expect(capturedUIState.constrainHeight).toBe(false);
+
+      unmount!();
+    });
+
+    it('should reset expansion when a key is NOT handled by anyone', async () => {
+      let unmount: () => void;
+      let stdin: ReturnType<typeof renderAppContainer>['stdin'];
+
+      await act(async () => {
+        const result = renderAppContainer();
+        unmount = result.unmount;
+        stdin = result.stdin;
+      });
+
+      await waitFor(() => expect(capturedUIActions).toBeTruthy());
+
+      // Expand first
+      act(() => capturedUIActions.setConstrainHeight(false));
+      expect(capturedUIState.constrainHeight).toBe(false);
+
+      // Press 'x' - should NOT be handled
+      act(() => {
+        stdin.write('x');
+      });
+
+      // Should be reset
+      await waitFor(() => {
+        expect(capturedUIState.constrainHeight).toBe(true);
+      });
+
+      unmount!();
+    });
+  });
 });

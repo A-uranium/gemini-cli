@@ -1704,19 +1704,6 @@ Logging in with Google... Restarting Gemini CLI to continue.
         return true;
       }
 
-      let enteringConstrainHeightMode = false;
-      if (!constrainHeight) {
-        enteringConstrainHeightMode = true;
-        setConstrainHeight(true);
-        if (keyMatchers[Command.SHOW_MORE_LINES](key)) {
-          // If the user manually collapses the view, show the hint and reset the x-second timer.
-          triggerExpandHint(true);
-        }
-        if (!isAlternateBuffer) {
-          refreshStatic();
-        }
-      }
-
       if (keyMatchers[Command.SHOW_ERROR_DETAILS](key)) {
         if (settings.merged.general.devtools) {
           void (async () => {
@@ -1752,17 +1739,6 @@ Logging in with Google... Restarting Gemini CLI to continue.
       ) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         handleSlashCommand('/ide status');
-        return true;
-      } else if (
-        keyMatchers[Command.SHOW_MORE_LINES](key) &&
-        !enteringConstrainHeightMode
-      ) {
-        setConstrainHeight(false);
-        // If the user manually expands the view, show the hint and reset the x-second timer.
-        triggerExpandHint(true);
-        if (!isAlternateBuffer) {
-          refreshStatic();
-        }
         return true;
       } else if (
         (keyMatchers[Command.FOCUS_SHELL_INPUT](key) ||
@@ -1834,11 +1810,10 @@ Logging in with Google... Restarting Gemini CLI to continue.
         }
         return true;
       }
+
       return false;
     },
     [
-      constrainHeight,
-      setConstrainHeight,
       setShowErrorDetails,
       config,
       ideContextState,
@@ -1868,7 +1843,50 @@ Logging in with Google... Restarting Gemini CLI to continue.
     ],
   );
 
-  useKeypress(handleGlobalKeypress, { isActive: true, priority: true });
+  useKeypress(
+    (key) => {
+      if (keyMatchers[Command.SHOW_MORE_LINES](key)) {
+        if (!constrainHeight) {
+          setConstrainHeight(true);
+          triggerExpandHint(true);
+          if (!isAlternateBuffer) {
+            refreshStatic();
+          }
+        } else {
+          setConstrainHeight(false);
+          triggerExpandHint(true);
+          if (!isAlternateBuffer) {
+            refreshStatic();
+          }
+        }
+        return true;
+      }
+      return false;
+    },
+    { isActive: true, priority: KeypressPriority.High },
+  );
+
+  useKeypress(
+    (key: Key): boolean => {
+      const handled = handleGlobalKeypress(key);
+      if (handled) return true;
+
+      // If we got here, no one handled the keypress.
+      // Reset expansion if it was expanded.
+      if (!constrainHeight && !keyMatchers[Command.SHOW_MORE_LINES](key)) {
+        setConstrainHeight(true);
+        if (!isAlternateBuffer) {
+          refreshStatic();
+        }
+      }
+
+      return false;
+    },
+    {
+      isActive: true,
+      priority: KeypressPriority.Low,
+    },
+  );
 
   useKeypress(
     () => {

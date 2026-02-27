@@ -216,7 +216,7 @@ const ReviewView: React.FC<ReviewViewProps> = ({
       }
       return false;
     },
-    { isActive: true },
+    { isActive: true, priority: true },
   );
 
   return (
@@ -988,6 +988,7 @@ export const AskUserDialog: React.FC<AskUserDialogProps> = ({
 
   useKeypress(handleCancel, {
     isActive: !submitted,
+    priority: true,
   });
 
   const isOnReviewTab = currentQuestionIndex === reviewTabIndex;
@@ -1021,6 +1022,7 @@ export const AskUserDialog: React.FC<AskUserDialogProps> = ({
 
   useKeypress(handleNavigation, {
     isActive: questions.length > 1 && !submitted,
+    priority: true,
   });
 
   useEffect(() => {

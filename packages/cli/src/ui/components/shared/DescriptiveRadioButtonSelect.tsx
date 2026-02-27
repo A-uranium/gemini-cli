@@ -32,6 +32,8 @@ export interface DescriptiveRadioButtonSelectProps<T> {
   showScrollArrows?: boolean;
   /** The maximum number of items to show at once. */
   maxItemsToShow?: number;
+  /** Whether the hook should have priority over normal subscribers. */
+  priority?: boolean;
 }
 
 /**
@@ -48,6 +50,7 @@ export function DescriptiveRadioButtonSelect<T>({
   showNumbers = false,
   showScrollArrows = false,
   maxItemsToShow = 10,
+  priority,
 }: DescriptiveRadioButtonSelectProps<T>): React.JSX.Element {
   return (
     <BaseSelectionList<T, DescriptiveRadioSelectItem<T>>
@@ -59,6 +62,7 @@ export function DescriptiveRadioButtonSelect<T>({
       showNumbers={showNumbers}
       showScrollArrows={showScrollArrows}
       maxItemsToShow={maxItemsToShow}
+      priority={priority}
       renderItem={(item, { titleColor }) => (
         <Box flexDirection="column" key={item.key}>
           <Text color={titleColor}>{item.title}</Text>
