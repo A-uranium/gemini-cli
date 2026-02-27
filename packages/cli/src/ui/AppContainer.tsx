@@ -77,6 +77,7 @@ import {
   SessionEndReason,
   generateSummary,
   type ConsentRequestPayload,
+  type TerminalCapabilities,
   type AgentsDiscoveredPayload,
   ChangeAuthRequestedError,
   CoreToolCallStatus,
@@ -941,7 +942,7 @@ Logging in with Google... Restarting Gemini CLI to continue.
     ],
   );
 
-  const terminalCapabilities = useTerminalCapabilities();
+  const terminalCapabilities: TerminalCapabilities = useTerminalCapabilities();
 
   const {
     handleSlashCommand,
