@@ -563,6 +563,11 @@ const baseMockUiState = {
   },
   hintMode: false,
   hintBuffer: '',
+  bannerData: {
+    defaultText: '',
+    warningText: '',
+  },
+  bannerVisible: false,
 };
 
 export const mockAppState: AppState = {
