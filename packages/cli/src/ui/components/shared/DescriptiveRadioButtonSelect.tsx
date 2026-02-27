@@ -50,7 +50,7 @@ export function DescriptiveRadioButtonSelect<T>({
   showNumbers = false,
   showScrollArrows = false,
   maxItemsToShow = 10,
-  priority,
+  priority = true,
 }: DescriptiveRadioButtonSelectProps<T>): React.JSX.Element {
   return (
     <BaseSelectionList<T, DescriptiveRadioSelectItem<T>>

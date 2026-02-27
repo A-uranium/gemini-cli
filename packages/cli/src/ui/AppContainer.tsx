@@ -1843,37 +1843,34 @@ Logging in with Google... Restarting Gemini CLI to continue.
     ],
   );
 
-  useKeypress(
-    (key) => {
+  const handleExpansionToggle = useCallback(
+    (key: Key) => {
       if (keyMatchers[Command.SHOW_MORE_LINES](key)) {
-        if (!constrainHeight) {
-          setConstrainHeight(true);
-          triggerExpandHint(true);
-          if (!isAlternateBuffer) {
-            refreshStatic();
-          }
-        } else {
-          setConstrainHeight(false);
-          triggerExpandHint(true);
-          if (!isAlternateBuffer) {
-            refreshStatic();
-          }
+        setConstrainHeight((prev) => !prev);
+        triggerExpandHint(true);
+        if (!isAlternateBuffer) {
+          refreshStatic();
         }
         return true;
       }
       return false;
     },
-    { isActive: true, priority: KeypressPriority.High },
+    [isAlternateBuffer, refreshStatic, triggerExpandHint],
   );
 
-  useKeypress(
+  useKeypress(handleExpansionToggle, {
+    isActive: true,
+    priority: KeypressPriority.High,
+  });
+
+  const handleLowPriorityFallback = useCallback(
     (key: Key): boolean => {
       const handled = handleGlobalKeypress(key);
       if (handled) return true;
 
       // If we got here, no one handled the keypress.
       // Reset expansion if it was expanded.
-      if (!constrainHeight && !keyMatchers[Command.SHOW_MORE_LINES](key)) {
+      if (!constrainHeight) {
         setConstrainHeight(true);
         if (!isAlternateBuffer) {
           refreshStatic();
@@ -1882,11 +1879,13 @@ Logging in with Google... Restarting Gemini CLI to continue.
 
       return false;
     },
-    {
-      isActive: true,
-      priority: KeypressPriority.Low,
-    },
+    [handleGlobalKeypress, constrainHeight, isAlternateBuffer, refreshStatic],
   );
+
+  useKeypress(handleLowPriorityFallback, {
+    isActive: true,
+    priority: KeypressPriority.Low,
+  });
 
   useKeypress(
     () => {
@@ -2001,6 +2000,16 @@ Logging in with Google... Restarting Gemini CLI to continue.
 
   const nightly = props.version.includes('nightly');
 
+  const pendingHistoryItems = useMemo(
+    () => [...pendingSlashCommandHistoryItems, ...pendingGeminiHistoryItems],
+    [pendingSlashCommandHistoryItems, pendingGeminiHistoryItems],
+  );
+
+  const hasPendingToolConfirmation = useMemo(
+    () => isToolAwaitingConfirmation(pendingHistoryItems),
+    [pendingHistoryItems],
+  );
+
   const dialogsVisible =
     (shouldShowRetentionWarning && retentionCheckComplete) ||
     shouldShowIdePrompt ||
@@ -2027,17 +2036,8 @@ Logging in with Google... Restarting Gemini CLI to continue.
     !!validationRequest ||
     isSessionBrowserOpen ||
     authState === AuthState.AwaitingApiKeyInput ||
-    !!newAgents;
-
-  const pendingHistoryItems = useMemo(
-    () => [...pendingSlashCommandHistoryItems, ...pendingGeminiHistoryItems],
-    [pendingSlashCommandHistoryItems, pendingGeminiHistoryItems],
-  );
-
-  const hasPendingToolConfirmation = useMemo(
-    () => isToolAwaitingConfirmation(pendingHistoryItems),
-    [pendingHistoryItems],
-  );
+    !!newAgents ||
+    hasPendingToolConfirmation;
 
   const hasConfirmUpdateExtensionRequests =
     confirmUpdateExtensionRequests.length > 0;
